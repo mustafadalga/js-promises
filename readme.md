@@ -1,0 +1,1 @@
+https://web.dev/promises/#bonus-round:-promises-and-generators

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="loading">Loading...</div>
+    <div class="errors"></div>
+    <script>
+        function get(url) {
+            // Return a new promise.
+            return new Promise(function(resolve, reject) {
+                // Do the usual XHR stuff
+                var req = new XMLHttpRequest();
+                req.open('GET', url);
+
+                req.onload = function() {
+                    // This is called even on 404 etc
+                    // so check the status
+                    if (req.status == 200) {
+                        // Resolve the promise with the response text
+                        resolve(req.response);
+                    } else {
+                        // Otherwise reject with the status text
+                        // which will hopefully be a meaningful error
+                        reject(Error(req.statusText));
+                    }
+                };
+
+                // Handle network errors
+                req.onerror = function() {
+                    reject(Error("Network Error"));
+                };
+
+                // Make the request
+                req.send();
+            });
+        }
+
+
+        function getJSON(url) {
+            return get(url).then(JSON.parse);
+        }
+
+        function addHtmlToPage(text) {
+            var node = document.createElement("h3"); // Create a <li> node
+            var textnode = document.createTextNode(text); // Create a text node
+            node.appendChild(textnode); // Append the text to <li>
+            document.querySelector(".errors").appendChild(node);
+
+
+
+
+            var node = document.createElement("hr"); // Create a <li> node
+            var textnode = document.createTextNode(text); // Create a text node
+            node.appendChild(textnode); // Append the text to <li>
+            document.querySelector(".errors").appendChild(node);
+        }
+
+
+        getJSON('story2.json')
+            .then(function(story) {
+                story = story[0]
+                addHtmlToPage(story.title);
+
+                // Map our array of chapter urls to
+                // an array of chapter json promises.
+                // This makes sure they all download in parallel.
+                return story.urls.map(getJSON)
+                    .reduce(function(sequence, chapterPromise) {
+                        // Use reduce to chain the promises together,
+                        // adding content to the page for each chapter
+                        return sequence
+                            .then(function() {
+                                // Wait for everything in the sequence so far,
+                                // then wait for this chapter to arrive.
+                                return chapterPromise;
+                            }).then(function(chapter) {
+                                addHtmlToPage(JSON.stringify(chapter));
+                            });
+                    }, Promise.resolve());
+            }).then(function() {
+                addHtmlToPage("All done");
+            }).catch(function(err) {
+                // catch any error that happened along the way
+                addHtmlToPage("Argh, broken: " + err.message);
+            }).then(function() {
+                document.querySelector('.loading').style.display = 'none';
+            })
+    </script>
+</body>
+
+
+</html>

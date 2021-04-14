@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="loading">Loading...</div>
+    <div class="errors"></div>
+    <script>
+        function* addGenerator() {
+            var i = 0;
+            while (true) {
+                i += yield i;
+            }
+        }
+        var adder = addGenerator();
+        console.log(adder.next().value); // 0
+        console.log(adder.next(5).value); // 5
+        console.log(adder.next(5).value); // 10
+        console.log(adder.next(5).value); // 15
+        console.log(adder.next(50).value); // 65
+    </script>
+</body>
+
+
+</html>

@@ -42,15 +42,9 @@
             });
         }
 
-        // function getJSON(url) {
-        //     return get(url).then(JSON.parse);
-        // }
 
         function getJSON(url) {
-            return get(url).then(JSON.parse).catch(function(err) {
-                console.log("getJSON failed for", url, err);
-                throw err;
-            });
+            return get(url).then(JSON.parse);
         }
 
         function addHtmlToPage(text) {
@@ -60,53 +54,32 @@
             document.querySelector(".errors").appendChild(node);
         }
 
-        var jsonPromise = new Promise(function(resolve, reject) {
-            // JSON.parse throws an error if you feed it some
-            // invalid JSON, so this implicitly rejects:
-            resolve(JSON.parse("This ain't JSON"));
-        });
 
-        jsonPromise.then(function(data) {
-            // This never happens:
-            console.log("It worked!", data);
-        }).catch(function(err) {
-            // Instead, this happens:
-            console.log("It failed!", err);
-        })
+        getJSON('story.json').then(function(story) {
+            story = story[0]
+            addHtmlToPage(story.title);
+            console.log(story)
 
-
-
-        get('/').then(JSON.parse).then(function() {
-            // This never happens, '/' is an HTML page, not JSON
-            // so JSON.parse throws
-            console.log("It worked!", data);
-        }).catch(function(err) {
-            // Instead, this happens:
-            console.log("It failed!", err);
-        })
-
-
-        getJSON('https://jsonplaceholder.typicode.com/todos/1').then(function(story) {
-            console.log(1)
-            return getJSON("https://jsonplaceholder.typicode.com/todos/2");
-        }).then(function(chapter1) {
-            addHtmlToPage(JSON.stringify(chapter1));
-        }).catch(function() {
-            addHtmlToPage("Failed to show chapter");
+            return story.urls.reduce(function(sequence, chapterUrl) {
+                // Once the last chapter's promise is done…
+                return sequence.then(function() {
+                    // …fetch the next chapter
+                    return getJSON(chapterUrl);
+                }).then(function(chapter) {
+                    // and add it to the page
+                    addHtmlToPage(JSON.stringify(chapter))
+                });
+            }, Promise.resolve());
         }).then(function() {
+            // And we're all done!
+            addHtmlToPage("All done");
+        }).catch(function(err) {
+            // Catch any error that happened along the way
+            addHtmlToPage("Argh, broken: " + err.message);
+        }).then(function() {
+            // Always hide the spinner
             document.querySelector('.loading').style.display = 'none';
         })
-
-
-
-        try {
-            var story = getJSON('https://jsonplaceholder.typicode.com/todoss');
-            var chapter1 = getJSON("https://jsonplaceholder.typicode.com/todos/1");
-            addHtmlToPage(JSON.stringify(chapter1));
-        } catch (e) {
-            addTextToPage("Failed to show chapter");
-        }
-        document.querySelector('.loading').style.display = 'none'
     </script>
 </body>
 
