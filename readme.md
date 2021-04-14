@@ -1,1 +1,6 @@
-https://web.dev/promises/#bonus-round:-promises-and-generators
+
+
+### JavaScript Promises Test Files
+
+### Resource
+* https://web.dev/promises
